@@ -1,0 +1,127 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+class Graph {
+private:
+    unordered_map<int, list<int>> adjList;
+    int vertices;
+    
+    void dfsHelper(int node, unordered_map<int, bool> &visited, vector<int> &component) {
+        component.push_back(node);
+        visited[node] = true;
+        for (auto i : adjList[node]) {
+            if (!visited[i]) {
+                dfsHelper(i, visited, component);
+            }
+        }
+    }
+
+public:
+    Graph(int v) {
+        vertices = v;
+    }
+
+    void addEdge(int u, int v, bool bidir = true) {
+        adjList[u].push_back(v);
+        if (bidir) {
+            adjList[v].push_back(u);
+        }
+    }
+
+    vector<int> topologicalSort() {
+        vector<int> indegree(vertices, 0);
+        for (auto i : adjList) {
+            for (auto j : i.second) {
+                indegree[j]++;
+            }
+        }
+
+        queue<int> q;
+        for (int i = 0; i < vertices; i++) {
+            if (indegree[i] == 0) {
+                q.push(i);
+            }
+        }
+
+        vector<int> ans;
+        while (!q.empty()) {
+            int front = q.front();
+            ans.push_back(front);
+            q.pop();
+            for (auto i : adjList[front]) {
+                indegree[i]--;
+                if (indegree[i] == 0) {
+                    q.push(i);
+                }
+            }
+        }
+        return ans;
+    }
+
+    vector<vector<int>> depthFirstSearch() {
+        unordered_map<int, bool> visited;
+        vector<vector<int>> ans;
+        for (int i = 0; i < vertices; i++) {
+            if (!visited[i]) {
+                vector<int> component;
+                dfsHelper(i, visited, component);
+                ans.push_back(component);
+            }
+        }
+        return ans;
+    }
+
+    vector<int> bfsTraversal(int start) {
+        vector<int> ans;
+        unordered_map<int, bool> visited;
+        queue<int> q;
+        q.push(start);
+        visited[start] = true;
+        
+        while (!q.empty()) {
+            int frontNode = q.front();
+            q.pop();
+            ans.push_back(frontNode);
+            for (auto i : adjList[frontNode]) {
+                if (!visited[i]) {
+                    q.push(i);
+                    visited[i] = true;
+                }
+            }
+        }
+        return ans;
+    }
+
+    vector<int> dijkstra(int source) {
+        vector<int> distance(vertices, INT_MAX);
+        distance[source] = 0;
+        set<pair<int, int>> st;
+        st.insert(make_pair(0, source));
+
+        while (!st.empty()) {
+            auto top = *(st.begin());
+            int nodeDistance = top.first;
+            int node = top.second;
+            st.erase(st.begin());
+
+            for (auto i : adjList[node]) {
+                int dest = i.first;
+                int weight = i.second;
+                if (nodeDistance + weight < distance[dest]) {
+                    auto record = st.find(make_pair(distance[dest], dest));
+                    if (record != st.end()) {
+                        st.erase(record);
+                    }
+                    distance[dest] = nodeDistance + weight;
+                    st.insert(make_pair(distance[dest], dest));
+                }
+            }
+        }
+        return distance;
+    }
+
+    void addWeightedEdge(int u, int v, int w) {
+        adjList[u].push_back(make_pair(v, w));
+        adjList[v].push_back(make_pair(u, w));
+    }
+};
